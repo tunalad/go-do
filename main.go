@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 	//"github.com/adrg/xdg"
-	//"github.com/cheynewallace/tabby"
 )
 
 func printTasks(tasks []task.Task) {
@@ -24,19 +23,6 @@ func printTasks(tasks []task.Task) {
 			printTask(i, tasks[i])
 		}
 	}
-
-	// tasksPriority := task.GetPriority(tasks, false)
-	// tasksLessPriority := task.GetPriority(tasks, true)
-
-	//for i := 0; i < len(tasksPriority); i++ {
-	//	printTask(i, tasksPriority[i])
-	//}
-
-	// fmt.Println(strings.Repeat("-", 50))
-
-	//for i := 0; i < len(tasksLessPriority); i++ {
-	//	printTask(i, tasksLessPriority[i])
-	//}
 
 	fmt.Println(strings.Repeat("-", 55))
 }
@@ -104,32 +90,6 @@ func csvToArray(path string) []task.Task {
 	return tasks
 }
 
-func addToCsv(path string, newItem string, status task.Status, priority bool) {
-	// old ooga booga monkey implementation
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		fmt.Println("Error opening the csv:", err)
-		return
-	}
-	defer file.Close()
-
-	// Construct the new row as a comma-separated string
-	newRow := fmt.Sprintf("%s,%d,%t\n", newItem, status, priority)
-
-	// Create a new writer
-	writer := bufio.NewWriter(file)
-	defer writer.Flush()
-
-	// Write the new row to the CSV file
-	_, err = writer.WriteString(newRow)
-	if err != nil {
-		fmt.Println("Error writing to file:", err)
-		return
-	}
-
-	fmt.Println("Item appended successfully.")
-}
-
 func removeFromCsv(tasks []task.Task, itemIndex int) []task.Task {
 	new := make([]task.Task, 0)
 	new = append(new, tasks[:itemIndex]...)
@@ -177,23 +137,12 @@ func main() {
 	flag.IntVar(&markDoing, "doing", -1, "Mark task as 'DOING'")
 	flag.IntVar(&markDone, "done", -1, "Mark task as 'DONE'")
 
-	tasks := []task.Task{
-		// task.NewTask("wake up", task.DONE, true),
-		// task.NewTask("do dishes", task.TODO, false),
-		// task.NewTask("make music", task.TODO, false),
-		// task.NewTask("code a bit", task.DOING, false),
-		// task.NewTask("procrastinate", task.DOING, false),
-		// task.NewTask("eat the breakfast", task.DONE, false),
-		// task.NewTask("ksdasdasdajsdlk jaslkd sdsdjalksjdls", task.DONE, false),
-	}
+	tasks := []task.Task{}
 
 	tasks = csvToArray("./tasks.csv")
 
 	flag.Parse()
 	if len(newTask) > 0 {
-		// addToCsv("./tasks.csv", "{{.newTask}},{{.task.TODO}},false")
-		// addToCsv("./tasks.csv", newTask, task.TODO, false)
-		// tasks = csvToArray("./tasks.csv")
 		tasks = append(tasks, task.NewTask(newTask, task.TODO, false))
 		printTasks(tasks)
 		arrayToCsv(tasks, "./tasks.csv")
