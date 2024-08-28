@@ -7,15 +7,31 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	//"github.com/adrg/xdg"
 )
+
+func EnsureCsv(path string) {
+	file, err := os.Open(path)
+	if err != nil {
+		fmt.Println("CSV doesn't exist, creating it.")
+
+		_, err := os.Create(path)
+		if err != nil {
+			fmt.Println("Failed creating CSV:", err)
+			return
+		}
+
+		fmt.Println("CSV created.")
+	}
+
+	defer file.Close()
+}
 
 func CsvToArray(path string) []task.Task {
 	tasks := []task.Task{}
 
 	file, err := os.Open(path)
 	if err != nil {
-		fmt.Println("Error opening the csv")
+		EnsureCsv(path)
 	}
 
 	defer file.Close()

@@ -7,7 +7,8 @@ import (
 	"go-do/utils"
 	"strconv"
 	"strings"
-	//"github.com/adrg/xdg"
+
+	"github.com/adrg/xdg"
 )
 
 func printTasks(tasks []task.Task) {
@@ -78,29 +79,34 @@ func main() {
 	flag.IntVar(&markDoing, "doing", -1, "Mark task as 'DOING'")
 	flag.IntVar(&markDone, "done", -1, "Mark task as 'DONE'")
 
-	tasks := utils.CsvToArray("./tasks.csv")
+	tasksPath, err := xdg.DataFile("go-do/tasks.csv")
+	if err != nil {
+		fmt.Println("Error accessing the Data file:", err)
+		return
+	}
+	tasks := utils.CsvToArray(tasksPath)
 
 	flag.Parse()
 	if len(newTask) > 0 {
 		tasks = append(tasks, task.NewTask(newTask, task.TODO, false))
 		printTasks(tasks)
-		utils.ArrayToCsv(tasks, "./tasks.csv")
+		utils.ArrayToCsv(tasks, tasksPath)
 	} else if itemToRemove >= 0 {
 		tasks = utils.RemoveFromCsv(tasks, itemToRemove)
 		printTasks(tasks)
-		utils.ArrayToCsv(tasks, "./tasks.csv")
+		utils.ArrayToCsv(tasks, tasksPath)
 	} else if markTodo >= 0 {
 		tasks[markTodo].SetStatus(task.TODO)
 		printTasks(tasks)
-		utils.ArrayToCsv(tasks, "./tasks.csv")
+		utils.ArrayToCsv(tasks, tasksPath)
 	} else if markDoing >= 0 {
 		tasks[markDoing].SetStatus(task.DOING)
 		printTasks(tasks)
-		utils.ArrayToCsv(tasks, "./tasks.csv")
+		utils.ArrayToCsv(tasks, tasksPath)
 	} else if markDone >= 0 {
 		tasks[markDone].SetStatus(task.DONE)
 		printTasks(tasks)
-		utils.ArrayToCsv(tasks, "./tasks.csv")
+		utils.ArrayToCsv(tasks, tasksPath)
 	} else if editTask != "" {
 		index, _ := strconv.Atoi(editTask)
 		args := flag.Args()
@@ -115,7 +121,7 @@ func main() {
 		newValue := args[0]
 		tasks[index].SetTitle(newValue)
 		printTasks(tasks)
-		utils.ArrayToCsv(tasks, "./tasks.csv")
+		utils.ArrayToCsv(tasks, tasksPath)
 	} else {
 		printTasks(tasks)
 	}
