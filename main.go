@@ -1,11 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"go-do/task"
-	"os"
+	"go-do/utils"
 	"strconv"
 	"strings"
 	//"github.com/adrg/xdg"
@@ -63,64 +62,6 @@ func printLongTask(id int, t task.Task) {
 	fmt.Println("|    |", t.Title, strings.Repeat(" ", unusedSpace), "|  ", icon, "  |")
 }
 
-func csvToArray(path string) []task.Task {
-	tasks := []task.Task{}
-
-	file, err := os.Open(path)
-	if err != nil {
-		fmt.Println("Error opening the csv")
-	}
-
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		parts := strings.Split(line, ",")
-
-		if len(parts) >= 3 {
-			title := parts[0]
-			status, _ := strconv.Atoi(parts[1])
-			priority, _ := strconv.ParseBool(parts[2])
-
-			tasks = append(tasks, task.NewTask(title, task.Status(status), priority))
-		}
-	}
-
-	return tasks
-}
-
-func removeFromCsv(tasks []task.Task, itemIndex int) []task.Task {
-	new := make([]task.Task, 0)
-	new = append(new, tasks[:itemIndex]...)
-	return append(new, tasks[itemIndex+1:]...)
-}
-
-func arrayToCsv(tasks []task.Task, path string) {
-	// opening the file
-	file, err := os.Create(path)
-	if err != nil {
-		fmt.Println("Error opening the csv:", err)
-		return
-	}
-	defer file.Close()
-
-	// creating a writer for the file
-	writer := bufio.NewWriter(file)
-	defer writer.Flush()
-
-	// array to csv
-	for _, t := range tasks {
-		newRow := fmt.Sprintf("%s,%d,%t\n", t.Title, t.Status, t.Priority)
-
-		_, err = writer.WriteString(newRow)
-		if err != nil {
-			fmt.Println("Error writing to file:", err)
-			return
-		}
-	}
-}
-
 func main() {
 	var newTask string
 	var itemToRemove int
@@ -137,31 +78,29 @@ func main() {
 	flag.IntVar(&markDoing, "doing", -1, "Mark task as 'DOING'")
 	flag.IntVar(&markDone, "done", -1, "Mark task as 'DONE'")
 
-	tasks := []task.Task{}
-
-	tasks = csvToArray("./tasks.csv")
+	tasks := utils.CsvToArray("./tasks.csv")
 
 	flag.Parse()
 	if len(newTask) > 0 {
 		tasks = append(tasks, task.NewTask(newTask, task.TODO, false))
 		printTasks(tasks)
-		arrayToCsv(tasks, "./tasks.csv")
+		utils.ArrayToCsv(tasks, "./tasks.csv")
 	} else if itemToRemove >= 0 {
-		tasks = removeFromCsv(tasks, itemToRemove)
+		tasks = utils.RemoveFromCsv(tasks, itemToRemove)
 		printTasks(tasks)
-		arrayToCsv(tasks, "./tasks.csv")
+		utils.ArrayToCsv(tasks, "./tasks.csv")
 	} else if markTodo >= 0 {
 		tasks[markTodo].SetStatus(task.TODO)
 		printTasks(tasks)
-		arrayToCsv(tasks, "./tasks.csv")
+		utils.ArrayToCsv(tasks, "./tasks.csv")
 	} else if markDoing >= 0 {
 		tasks[markDoing].SetStatus(task.DOING)
 		printTasks(tasks)
-		arrayToCsv(tasks, "./tasks.csv")
+		utils.ArrayToCsv(tasks, "./tasks.csv")
 	} else if markDone >= 0 {
 		tasks[markDone].SetStatus(task.DONE)
 		printTasks(tasks)
-		arrayToCsv(tasks, "./tasks.csv")
+		utils.ArrayToCsv(tasks, "./tasks.csv")
 	} else if editTask != "" {
 		index, _ := strconv.Atoi(editTask)
 		args := flag.Args()
@@ -176,7 +115,7 @@ func main() {
 		newValue := args[0]
 		tasks[index].SetTitle(newValue)
 		printTasks(tasks)
-		arrayToCsv(tasks, "./tasks.csv")
+		utils.ArrayToCsv(tasks, "./tasks.csv")
 	} else {
 		printTasks(tasks)
 	}
